@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.venv/
+attendance.db
+*.sqlite3
+docs/opr-preview.png
