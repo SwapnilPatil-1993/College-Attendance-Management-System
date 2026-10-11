@@ -4,7 +4,7 @@ This repository contains the two deliverables described in the supplied project 
 
 1. `flask_app/` implements the one-page OPR: a Flask, SQLite, Bootstrap attendance web application.
 2. `mysql_project/college_attendance.sql` implements the database-only MySQL mini project from the detailed report.
-3. `docs/OPR_College_Attendance_Management_System.pdf` is the revised one-page OPR with Swapnil Patil's GitHub profile link.
+3. `docs/OPR_College_Attendance_Management_System.pdf` is the revised one-page OPR with Swapnil Patil's project repository link.
 
 ## Flask + SQLite application
 
@@ -29,4 +29,4 @@ The two supplied documents specify distinct technology stacks and scopes; they a
 
 ## Owner
 
-Swapnil Patil — https://github.com/SwapnilPatil-1993
+Swapnil Patil — https://github.com/SwapnilPatil-1993/College-Attendance-Management-System
