@@ -51,3 +51,93 @@ jobs:
           MYSQL_PWD: test-root-password
         run: |
           mysql --host=127.0.0.1 --user=root --database=college_attendance --batch --execute="SHOW TABLES; SELECT COUNT(*) AS students_count FROM students; SELECT COUNT(*) AS summary_rows FROM student_attendance_summary;"
+
+  browser-ui-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install app and browser dependencies
+        run: |
+          pip install -r flask_app/requirements.txt playwright
+          python -m playwright install --with-deps chromium
+      - name: Start application
+        env:
+          FLASK_SECRET_KEY: ci-test-secret
+          ADMIN_USERNAME: admin
+          ADMIN_PASSWORD: admin123
+          ATTENDANCE_DB: /tmp/attendance-ui-test.db
+        run: |
+          cd flask_app
+          nohup python app.py > /tmp/attendance-app.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl --silent --fail http://127.0.0.1:5000/login >/dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail http://127.0.0.1:5000/login
+      - name: Test pages and capture real browser screenshots
+        run: |
+          mkdir -p artifacts/ui-screenshots
+          python - <<'PY'
+          from datetime import date
+          from pathlib import Path
+          from playwright.sync_api import sync_playwright
+
+          out = Path("artifacts/ui-screenshots")
+          with sync_playwright() as p:
+              browser = p.chromium.launch()
+              page = browser.new_page(viewport={"width": 1440, "height": 1000})
+              page.goto("http://127.0.0.1:5000/login", wait_until="networkidle")
+              assert page.get_by_role("heading", name="Admin login").is_visible()
+              page.screenshot(path=str(out / "01-login.png"), full_page=True)
+              page.locator('input[name="username"]').fill("admin")
+              page.locator('input[name="password"]').fill("admin123")
+              page.get_by_role("button", name="Sign in").click()
+              page.get_by_role("heading", name="Dashboard").wait_for()
+              page.screenshot(path=str(out / "02-dashboard.png"), full_page=True)
+              page.goto("http://127.0.0.1:5000/students", wait_until="networkidle")
+              page.locator('input[name="roll_no"]').fill("UI001")
+              page.locator('input[name="name"]').fill("Demo Student")
+              page.locator('input[name="email"]').fill("demo.student@example.com")
+              page.locator('input[name="new_department"]').fill("Information Technology")
+              page.locator('select[name="year"]').select_option("3")
+              page.get_by_role("button", name="Add").click()
+              page.get_by_text("Demo Student").wait_for()
+              page.screenshot(path=str(out / "03-students.png"), full_page=True)
+              page.goto("http://127.0.0.1:5000/subjects", wait_until="networkidle")
+              page.locator('input[name="subject_name"]').fill("Database Management Systems")
+              page.locator('input[name="new_department"]').fill("Information Technology")
+              page.locator('select[name="year"]').select_option("3")
+              page.get_by_role("button", name="Add").click()
+              page.get_by_text("Database Management Systems").wait_for()
+              page.screenshot(path=str(out / "04-subjects.png"), full_page=True)
+              page.goto("http://127.0.0.1:5000/attendance", wait_until="networkidle")
+              page.locator('select[name="subject_id"]').select_option(label="Database Management Systems")
+              page.locator('input[name="att_date"]').fill(date.today().isoformat())
+              page.get_by_role("button", name="Load").click()
+              page.get_by_text("Demo Student").wait_for()
+              page.screenshot(path=str(out / "05-mark-attendance.png"), full_page=True)
+              page.get_by_role("button", name="Save attendance").click()
+              page.get_by_text("Attendance saved.").wait_for()
+              page.screenshot(path=str(out / "06-attendance-saved.png"), full_page=True)
+              page.goto("http://127.0.0.1:5000/reports", wait_until="networkidle")
+              page.get_by_role("heading", name="Attendance reports").wait_for()
+              page.get_by_text("Demo Student").wait_for()
+              page.screenshot(path=str(out / "07-reports.png"), full_page=True)
+              browser.close()
+          print("PASS: login, dashboard, student creation, subject creation, attendance save, reports.")
+          PY
+      - name: Upload actual browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: college-attendance-ui-screenshots
+          path: artifacts/ui-screenshots/
+          if-no-files-found: warn
+      - name: Show app logs on failure
+        if: failure()
+        run: cat /tmp/attendance-app.log || true
