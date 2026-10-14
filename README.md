@@ -8,6 +8,12 @@ This repository contains two implementations of the College Attendance Managemen
 
 **Important:** The Flask/SQLite application and the MySQL script are separate implementations with different schemas. Run and evaluate them separately; do not expect the MySQL tables to be used by the Flask app.
 
+## ER Diagram
+
+View the [ER Diagram for the Flask + SQLite application](docs/ER-Diagram.md). GitHub renders the Mermaid ER diagram in that document. It covers Departments, Students, Subjects, Attendance, and Attendance Log.
+
+> Note: the separate MySQL script uses a different schema and includes a Faculty table; run and evaluate the two implementations separately.
+
 ## Flask + SQLite application
 
 Requirements: Python 3.10+.
