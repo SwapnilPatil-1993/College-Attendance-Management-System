@@ -1,5 +1,5 @@
 -- College Attendance Management System (MySQL / MySQL Workbench)
--- Run from top to bottom. Uses the schema and sample data in the detailed report.
+-- Run from top to bottom. Creates the schema and sample data used by this SQL project.
 CREATE DATABASE IF NOT EXISTS college_attendance;
 USE college_attendance;
 
@@ -118,9 +118,11 @@ END//
 DELIMITER ;
 
 -- Atomic example: commit all records for a day's attendance together.
+-- ON DUPLICATE KEY UPDATE makes this demonstration safe to run repeatedly.
 START TRANSACTION;
 INSERT INTO attendance(student_id,subject_id,attendance_date,status) VALUES
-(1,2,'2026-09-03','Present'),(2,2,'2026-09-03','Absent'),(3,2,'2026-09-03','Present');
+(1,2,'2026-09-03','Present'),(2,2,'2026-09-03','Absent'),(3,2,'2026-09-03','Present')
+ON DUPLICATE KEY UPDATE status = VALUES(status);
 COMMIT;
 -- Demonstrate undoing an accidental deletion.
 START TRANSACTION;
