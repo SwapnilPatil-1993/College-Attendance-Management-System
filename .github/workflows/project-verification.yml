@@ -1,0 +1,53 @@
+name: Project verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  flask-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r flask_app/requirements.txt
+      - name: Run Flask application tests
+        working-directory: flask_app
+        run: python -m unittest -v test_app.py
+
+  mysql-script:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test-root-password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -ptest-root-password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install MySQL client
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
+      - name: Execute MySQL project script
+        env:
+          MYSQL_PWD: test-root-password
+        run: mysql --host=127.0.0.1 --user=root --show-warnings < mysql_project/college_attendance.sql
+      - name: Verify tables and summary view
+        env:
+          MYSQL_PWD: test-root-password
+        run: |
+          mysql --host=127.0.0.1 --user=root --database=college_attendance --batch --execute="SHOW TABLES; SELECT COUNT(*) AS students_count FROM students; SELECT COUNT(*) AS summary_rows FROM student_attendance_summary;"
