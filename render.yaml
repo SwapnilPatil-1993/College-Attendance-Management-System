@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: college-attendance-management-system
+    runtime: python
+    plan: free
+    rootDir: flask_app
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    healthCheckPath: /login
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        generateValue: true
