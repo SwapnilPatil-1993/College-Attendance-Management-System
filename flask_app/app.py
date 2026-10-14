@@ -88,6 +88,52 @@ def init_db():
         """)
         db.commit()
 
+        # Seed a small, clearly labelled demo dataset on a brand-new empty database.
+        # This makes the hosted academic demonstration immediately testable while
+        # avoiding overwriting any existing student/attendance data.
+        student_count = db.execute("SELECT COUNT(*) FROM students").fetchone()[0]
+        subject_count = db.execute("SELECT COUNT(*) FROM subjects").fetchone()[0]
+        attendance_count = db.execute("SELECT COUNT(*) FROM attendance").fetchone()[0]
+        if student_count == 0 and subject_count == 0 and attendance_count == 0:
+            db.execute("INSERT OR IGNORE INTO departments(dept_name) VALUES (?)", ("IT",))
+            dept_id = db.execute("SELECT dept_id FROM departments WHERE dept_name=?", ("IT",)).fetchone()[0]
+            demo_students = [
+                ("DEMO001", "Aarav Patil (Demo)", "aarav.demo@example.com", dept_id, 3),
+                ("DEMO002", "Priya Sharma (Demo)", "priya.demo@example.com", dept_id, 3),
+                ("DEMO003", "Rohan Deshmukh (Demo)", "rohan.demo@example.com", dept_id, 3),
+            ]
+            db.executemany(
+                "INSERT INTO students(roll_no,name,email,dept_id,year) VALUES(?,?,?,?,?)",
+                demo_students,
+            )
+            demo_subjects = [
+                ("Database Management System (Demo)", dept_id, 3),
+                ("Web Technology (Demo)", dept_id, 3),
+                ("Software Engineering (Demo)", dept_id, 3),
+            ]
+            db.executemany(
+                "INSERT INTO subjects(subject_name,dept_id,year) VALUES(?,?,?)",
+                demo_subjects,
+            )
+            students = db.execute("SELECT student_id FROM students WHERE roll_no LIKE 'DEMO%' ORDER BY roll_no").fetchall()
+            subjects = db.execute("SELECT subject_id FROM subjects WHERE subject_name LIKE '%(Demo)' ORDER BY subject_id").fetchall()
+            demo_attendance = []
+            for subject in subjects:
+                for class_no in range(1, 6):
+                    att_date = f"2026-10-{class_no + 1:02d}"
+                    for student_index, student in enumerate(students):
+                        present = not ((student_index == 1 and class_no == 5) or
+                                       (student_index == 2 and class_no in (4, 5)))
+                        demo_attendance.append(
+                            (student["student_id"], subject["subject_id"], att_date,
+                             "Present" if present else "Absent")
+                        )
+            db.executemany(
+                "INSERT INTO attendance(student_id,subject_id,att_date,status) VALUES(?,?,?,?)",
+                demo_attendance,
+            )
+            db.commit()
+
 
 def login_required(view):
     @wraps(view)
