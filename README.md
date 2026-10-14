@@ -27,6 +27,16 @@ Initial demo login: `admin` / `admin123`. These are demo credentials only. Befor
 
 Features include admin login, student and subject create/read/update/delete operations, per-day attendance marking, attendance summary reports, a below-75% attendance list, database views, and an attendance-change audit trigger.
 
+### Automated application tests
+
+After installing Flask, run:
+
+```powershell
+python -m unittest test_app.py
+```
+
+The tests use a separate temporary SQLite database and check login protection, dashboard loading, student creation, report loading, and invalid-login handling. Run the command locally to see the actual pass/fail result.
+
 ## MySQL database project
 
 Open `mysql_project/college_attendance.sql` in MySQL Workbench and execute it from top to bottom. The script creates and seeds the schema and demonstrates CRUD operations, inner/left joins, aggregate queries, attendance percentages, a summary view, a trigger blocking future attendance, and transaction commit/rollback examples. The sample transaction uses an upsert so its demonstration records can be applied repeatedly.
@@ -48,8 +58,9 @@ Expected: the schema tables are listed, sample students/subjects/attendance rows
 
 ## Before submission
 
+- Run the Flask automated tests and confirm they pass.
 - Run the MySQL script in MySQL Workbench and resolve any error messages.
-- Run the Flask application and test student/subject forms, attendance marking, and reports.
+- Run the Flask application and manually test student/subject forms, attendance marking, and reports.
 - Capture screenshots from actual successful runs; do not use mock screenshots as execution proof.
 - Prepare the detailed DBMS report and submit the source, SQL script, and report through the required classroom portal.
 
