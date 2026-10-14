@@ -37,6 +37,16 @@ python -m unittest test_app.py
 
 The tests use a separate temporary SQLite database and check login protection, dashboard loading, student creation, report loading, and invalid-login handling. Run the command locally to see the actual pass/fail result.
 
+## Deploy the Flask app for phone testing
+
+This repository includes a Render Blueprint in `render.yaml`. To create a public demo, open the Render deploy page below, sign in, review the service, and approve deployment:
+
+[Deploy this repository on Render](https://render.com/deploy?repo=https://github.com/SwapnilPatil-1993/College-Attendance-Management-System)
+
+Choose the free plan if offered. The Blueprint runs the Flask app from `flask_app/`, creates a random Flask secret and a random admin password, and starts it with Gunicorn. After deployment, open the service's **Environment** page to view the generated `ADMIN_PASSWORD`; the username is `admin`. Do not share the password publicly.
+
+**Demo limitation:** this version uses SQLite on the free host's temporary filesystem, so changes and demo records may be lost when the service restarts or redeploys. This is for demonstration/testing, not production attendance records. Render may take about a minute to wake after inactivity.
+
 ## MySQL database project
 
 Open `mysql_project/college_attendance.sql` in MySQL Workbench and execute it from top to bottom. The script creates and seeds the schema and demonstrates CRUD operations, inner/left joins, aggregate queries, attendance percentages, a summary view, a trigger blocking future attendance, and transaction commit/rollback examples. The sample transaction uses an upsert so its demonstration records can be applied repeatedly.
