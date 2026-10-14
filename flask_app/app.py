@@ -125,7 +125,7 @@ def init_db():
                         present = not ((student_index == 1 and class_no == 5) or
                                        (student_index == 2 and class_no in (4, 5)))
                         demo_attendance.append(
-                            (student["student_id"], subject["subject_id"], att_date,
+                            (student[0], subject[0], att_date,
                              "Present" if present else "Absent")
                         )
             db.executemany(
